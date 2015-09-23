@@ -1,0 +1,20 @@
+<div class="survey">
+    <div class="resource">
+        <div class="text-container" ng-if="resource.kind === 'text'">
+            <p>{{ resource.body }}</p>
+        </div>
+        <div class="center-block text-center" ng-if="resource.kind === 'image'">
+            <img src="{{resource.src}}" class="img-responsive img-thumbnail" alt=""/>
+        </div>
+    </div>
+
+    <div class="buttons text-center">
+        <button ng-click="processResource(resource.id, false)" class="btn btn-default btn-lg">
+            <span class="down glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+        </button>
+
+        <button ng-click="processResource(resource.id, true)" class="btn btn-default btn-lg">
+            <span class="up glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+        </button>
+    </div>
+</div>
