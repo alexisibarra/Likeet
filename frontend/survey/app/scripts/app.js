@@ -17,7 +17,7 @@ angular
     'ngSanitize',
     'ngTouch',
   ])
-  .config(function ($stateProvider, $urlRouterProvider) {
+  .config(function ($stateProvider, $urlRouterProvider, $locationProvider) {
     $urlRouterProvider.otherwise("/");
 
     $stateProvider
@@ -31,4 +31,6 @@ angular
         controller: 'SurveyCtrl',
         url: '/survey'
       });
+
+    $locationProvider.html5Mode(true);
   });
