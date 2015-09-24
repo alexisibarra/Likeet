@@ -31,6 +31,4 @@ angular
         controller: 'SurveyCtrl',
         url: '/survey'
       });
-
-    $locationProvider.html5Mode(true);
   });
