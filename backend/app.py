@@ -1,5 +1,5 @@
 #!flask/bin/python
-from flask import Flask, jsonify, abort, make_response, request, url_for
+from flask import Flask, jsonify, abort, make_response, request, url_for, request
 from random import randint
 import json
 
@@ -10,6 +10,11 @@ users = json.dumps({
     {
         'id': 0,
         'email': 'ar.ibarrasalas@gmail.com',
+        'resources': []
+    },
+    {
+        'id': 0,
+        'email': 'alexis.ibarra@predictvia.com',
         'resources': []
     }
 ]})
@@ -66,8 +71,9 @@ resources = json.dumps({
 def create_user():
     if not request.json or not 'email' in request.json:
         abort(400)
+
     user = {
-        'id': users[-1]['id'] + 1,
+        'id': randint(0, 1000000000),
         'email': request.json['email']
     }
 
@@ -87,8 +93,7 @@ def get_user(user_id):
 def delete_user(user_id):
     data = json.loads(users)
 
-    resource = {'id': resource_id}
-    data['users'][user_id].destroy()
+    del data['users'][user_id]
 
     return json.dumps(data['users'])
 
@@ -101,7 +106,6 @@ def process_resource(user_id, resource_id):
 
     return json.dumps(data['users'][user_id])
 
-
 @app.route('/api/resource', methods=['GET'])
 def get_resource():
     data = json.loads(resources)
@@ -110,7 +114,8 @@ def get_resource():
 
 @app.route('/api/resources', methods=['GET'])
 def get_resources():
-    return resources
+    data = json.loads(resources)
+    return json.dumps(data['resources'])
 
 @app.route('/api/resources/<int:resource_id>', methods=['GET'])
 def get_a_resource(resource_id):
@@ -121,12 +126,21 @@ def get_a_resource(resource_id):
 
 @app.route('/api/resources/<int:resource_id>', methods=['PUT'])
 def update_resource(resource_id):
-    return jsonify({'result': True})
+    data = json.loads(resources)
+
+    for attribute in request.json:
+        print(request.json[attribute])
+        data['resources'][resource_id][attribute] = request.json[attribute]
+
+    return json.dumps(data['resources'][resource_id])
 
 @app.route('/api/resources/<int:resource_id>', methods=['DELETE'])
 def delete_resource(resource_id):
-    return jsonify({'result': True})
+    data = json.loads(resources)
 
+    del data['resources'][resource_id]
+
+    return json.dumps(data['resources'])
 
 @app.errorhandler(404)
 def not_found(error):
