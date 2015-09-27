@@ -108,11 +108,12 @@ def process_resource(user_id, resource_id):
 
     return json.dumps(data['users'][user_id])
 
-@app.route('/api/resource', methods=['GET'])
-def get_resource():
+@app.route('/api/randomresources', methods=['GET'])
+def get_random_resources():
     data = json.loads(resources)
     numResources = len(data['resources'])
-    return json.dumps(data['resources'][randint(0, numResources)])
+    resource = data['resources'][randint(0, numResources)]
+    return json.dumps([ resource ])
 
 @app.route('/api/resources', methods=['GET'])
 def get_resources():

@@ -8,15 +8,12 @@
  * Controller of the likeetApp
  */
 angular.module('likeetApp')
-  .controller('SurveyCtrl', ['$scope', '$state', 'dataService', function ($scope, $state, dataService) {
-    dataService.get_resource()
-      .success(function (resource) {
-        $scope.error = false;
-        $scope.resource = resource;
-      })
-      .error(function (error) {
-        $scope.error = 'Error retrieving customers! ' + error.message;
-      });
+  .controller('SurveyCtrl', ['$scope', '$state', 'dataService', 'Restangular', function ($scope, $state, dataService, Restangular) {
+
+    var baseResources = Restangular.all('randomresources');
+    baseResources.getList().then(function(resources){
+      $scope.resource = resources[0];
+    });
 
     $scope.processResource = function(resourceId, decision ){
       if (decision){
