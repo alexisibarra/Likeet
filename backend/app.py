@@ -2,9 +2,14 @@
 from flask import Flask, jsonify, abort, make_response, request, url_for, request
 from random import randint
 from flask.ext.cors import CORS
+from flask.ext.mongoengine import MongoEngine
 import json
 
 app = Flask(__name__)
+app.config["MONGODB_SETTINGS"] = {'DB': "my_tumble_log"}
+app.config["SECRET_KEY"] = "KeepThisS3cr3t"
+db = MongoEngine(app)
+
 CORS(app)
 
 users = json.dumps({
