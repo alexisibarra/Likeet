@@ -1,9 +1,11 @@
 #!flask/bin/python
 from flask import Flask, jsonify, abort, make_response, request, url_for, request
 from random import randint
+from flask.ext.cors import CORS
 import json
 
 app = Flask(__name__)
+CORS(app)
 
 users = json.dumps({
     "users":[
@@ -145,6 +147,16 @@ def delete_resource(resource_id):
 @app.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+    return response
+
+def options(self):
+    pass
 
 def find(id, resource):
     if (resource == 'users'):
