@@ -1,9 +1,11 @@
 #!flask/bin/python
 from flask import Flask, jsonify, abort, make_response, request, url_for, request
 from random import randint
+from flask.ext.cors import CORS
 import json
 
 app = Flask(__name__)
+CORS(app)
 
 users = json.dumps({
     "users":[
