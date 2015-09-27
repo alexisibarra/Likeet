@@ -148,6 +148,16 @@ def delete_resource(resource_id):
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+    return response
+
+def options(self):
+    pass
+
 def find(id, resource):
     if (resource == 'users'):
         data = json.loads(users)
