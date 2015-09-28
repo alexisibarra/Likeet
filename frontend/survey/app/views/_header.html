@@ -2,9 +2,9 @@
     <div class="container-fluid">
         <div class="navbar-header">
             <a class="navbar-brand" href="#">
-                <img src="/images/logo_predictvia.svg" alt="Predictvia"/>
+                <img src="images/logo_predictvia.svg" alt="Predictvia"/>
             </a>
         </div>
-        <!--<p class="navbar-text navbar-right">Signed in as {{ UserData.email }}</p>-->
+        <p ng-if="!User.isNotSet()" class="navbar-text navbar-right">Signed in as {{ User.email }}</p>
     </div>
 </nav>
