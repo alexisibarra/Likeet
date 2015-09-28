@@ -101,7 +101,8 @@ class ResourceModel(db.Document):
 class UserModel(db.Document):
     created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
     email = db.StringField(required=True)
-    resources = db.ListField(db.ReferenceField(ResourceModel))
+    liked_resources = db.ListField(db.ReferenceField(ResourceModel))
+    disliked_resources = db.ListField(db.ReferenceField(ResourceModel))
 
     def __unicode__(self):
         return json.dumps(
@@ -147,11 +148,18 @@ def delete_user(user_id):
     return json.dumps({"success": "true"})
 
 @app.route('/api/users/<string:user_id>/process/<string:resource_id>', methods=['POST'])
-def process_resource(user_id, resource_id):
-    user = UserModel.objects(id = user_id)[0]
+def like_resource(user_id, resource_id):
+    if not request.json or not 'like' in request.json:
+        abort(400)
 
+    user = UserModel.objects(id = user_id)[0]
     resource = ResourceModel(id = resource_id)
-    user.resources.append(resource)
+
+    if(request.json['like'] == 'true'):
+        user.liked_resources.append(resource)
+    else:
+        user.disliked_resources.append(resource)
+
     if user.save():
         return json.dumps({"success": "true"})
     else:
