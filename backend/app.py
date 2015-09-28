@@ -120,7 +120,7 @@ class UserModel(db.Document):
         'ordering': ['-created_at']
     }
 
-@app.route('/api/user', methods=['POST'])
+@app.route('/api/users', methods=['POST'])
 def create_user():
     if not request.json or not 'email' in request.json:
         abort(400)
@@ -132,7 +132,7 @@ def create_user():
         user = UserModel.objects(email = request.json['email'])[0]
         pass
 
-    return json.dumps({ "id": str(user.id)})
+    return json.dumps({ "id": str(user.id), "email": user.email})
 
 @app.route('/api/user/<string:user_id>', methods=['GET'])
 def get_user(user_id):
@@ -147,13 +147,13 @@ def delete_user(user_id):
         abort(400)
     return json.dumps({"success": "true"})
 
-@app.route('/api/users/<string:user_id>/process/<string:resource_id>', methods=['POST'])
-def like_resource(user_id, resource_id):
-    if not request.json or not 'like' in request.json:
+@app.route('/api/users/<string:user_id>/process', methods=['POST'])
+def process_resource(user_id):
+    if not request.json or not 'like' in request.json or not 'resourceId' in request.json:
         abort(400)
 
     user = UserModel.objects(id = user_id)[0]
-    resource = ResourceModel(id = resource_id)
+    resource = ResourceModel(id = request.json['resourceId'])
 
     if(request.json['like'] == 'true'):
         user.liked_resources.append(resource)
