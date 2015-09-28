@@ -1,10 +1,18 @@
 #!flask/bin/python
-from flask import Flask, jsonify, abort, make_response, request, url_for, request
-from random import randint
-from flask.ext.cors import CORS
 import json
+import datetime
+import random
+
+from flask import Flask, jsonify, abort, make_response, request, url_for, request
+from flask.ext.cors import CORS
+from flask.ext.mongoengine import MongoEngine
 
 app = Flask(__name__)
+app.config["MONGODB_SETTINGS"] = {'DB': "my_tumble_log"}
+app.config["SECRET_KEY"] = "KeepThisS3cr3t"
+
+db = MongoEngine(app)
+
 CORS(app)
 
 users = json.dumps({
@@ -69,51 +77,106 @@ resources = json.dumps({
         'src': "http://lorempixel.com/700/920/"},
     ]})
 
+class ResourceModel(db.Document):
+    created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
+    kind = db.StringField(max_length=255, required=True)
+    src = db.URLField()
+    body = db.StringField()
+
+    def __unicode__(self):
+        return json.dumps(
+            {
+                'id': str(self.id),
+                'kind': self.kind,
+                'body': self.body,
+                'src': self.src
+            })
+
+    meta = {
+        'allow_inheritance': True,
+        'indexes': ['-created_at'],
+        'ordering': ['-created_at']
+    }
+
+class UserModel(db.Document):
+    created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
+    email = db.StringField(required=True)
+    resources = db.ListField(db.ReferenceField(ResourceModel))
+
+    def __unicode__(self):
+        return json.dumps(
+            {
+                'id': str(self.id),
+                'email': self.email
+            })
+
+    meta = {
+        'allow_inheritance': True,
+        'indexes': [
+            '-created_at',
+            {'fields': ['email'], 'sparse': True, 'unique': True},
+        ],
+        'ordering': ['-created_at']
+    }
+
 @app.route('/api/user', methods=['POST'])
 def create_user():
     if not request.json or not 'email' in request.json:
         abort(400)
 
-    user = {
-        'id': randint(0, 1000000000),
-        'email': request.json['email']
-    }
+    try:
+        user = UserModel(email = request.json['email'])
+        user.save()
+    except:
+        user = UserModel.objects(email = request.json['email'])[0]
+        pass
 
-    data = json.loads(users)
-    data['users'].append(user)
+    return json.dumps({ "id": str(user.id)})
 
-    return json.dumps(data['users'])
-
-@app.route('/api/user/<int:user_id>', methods=['GET'])
+@app.route('/api/user/<string:user_id>', methods=['GET'])
 def get_user(user_id):
-    user = find(user_id, 'users')
-    if len(user) == 0:
-        abort(404)
-    return jsonify({'user': user[0]})
+    user = UserModel.objects(id = user_id)
+    return "[" + str(user[0]) + "]"
 
-@app.route('/api/user/<int:user_id>', methods=['DELETE'])
+@app.route('/api/user/<string:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    data = json.loads(users)
+    try:
+        UserModel(id = user_id).delete()
+    except:
+        abort(400)
+    return json.dumps({"success": "true"})
 
-    del data['users'][user_id]
-
-    return json.dumps(data['users'])
-
-@app.route('/api/users/<int:user_id>/process/<int:resource_id>', methods=['POST'])
+@app.route('/api/users/<string:user_id>/process/<string:resource_id>', methods=['POST'])
 def process_resource(user_id, resource_id):
-    data = json.loads(users)
+    user = UserModel.objects(id = user_id)[0]
 
-    resource = {'id': resource_id}
-    data['users'][user_id]['resources'].append(resource)
-
-    return json.dumps(data['users'][user_id])
+    resource = ResourceModel(id = resource_id)
+    user.resources.append(resource)
+    if user.save():
+        return json.dumps({"success": "true"})
+    else:
+        abort(404)
 
 @app.route('/api/randomresources', methods=['GET'])
 def get_random_resources():
-    data = json.loads(resources)
-    numResources = len(data['resources'])
-    resource = data['resources'][randint(0, numResources)]
-    return json.dumps([ resource ])
+    resources = ResourceModel.objects.all()
+    return "[" + str(random.choice(resources)) + "]"
+
+@app.route('/api/resources', methods=['POST'])
+def create_resource():
+    if not request.json or not 'kind' in request.json:
+        abort(400)
+
+    resource = ResourceModel(kind = request.json['kind'])
+
+    if 'src' in request.json:
+        resource.src = request.json['src']
+    if 'body' in request.json:
+        resource.body = request.json['body']
+
+    resource.save()
+
+    return json.dumps({ "id": str(resource.id)})
 
 @app.route('/api/resources', methods=['GET'])
 def get_resources():
